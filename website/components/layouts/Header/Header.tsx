@@ -187,7 +187,7 @@ export default function Header({
                 <div className="flex items-center border-l border-gray-200 ml-6 pl-6 dark:border-gray-800">
                   <a
                     href="https://valtio.dev/"
-                    className="text-sm text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                    className="text-sm text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 mr-6"
                   >
                     English Docs
                   </a>
