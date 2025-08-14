@@ -421,33 +421,18 @@ export function getDocsMap(): Record<string, Navigation> {
 export function getDocsNav(): NavigationTree {
   const pages = getDocsMap()
   
-  // Define navigation titles based on locale
-  const navTitles = {
-    en: {
-      Introduction: 'Introduction',
-      Guides: 'Guides',
-      API: 'API',
-      Basic: 'Basic',
-      Advanced: 'Advanced',
-      Utils: 'Utils',
-      Hacks: 'Hacks',
-      "How To's": "How To's",
-      Resources: 'Resources',
-    },
-    zh: {
-      Introduction: '介绍',
-      Guides: '指南',
-      API: 'API',
-      Basic: '基础',
-      Advanced: '高级',
-      Utils: '工具',
-      Hacks: '技巧',
-      "How To's": '如何使用',
-      Resources: '资源',
-    }
+  // Define navigation titles
+  const titles = {
+    Introduction: '介绍',
+    Guides: '指南',
+    API: 'API',
+    Basic: '基础',
+    Advanced: '高级',
+    Utils: '工具',
+    Hacks: '技巧',
+    "How To's": '如何使用',
+    Resources: '资源',
   }
-  
-  const titles = navTitles.zh
   
   return {
     [titles.Introduction]: [pages['getting-started']],
