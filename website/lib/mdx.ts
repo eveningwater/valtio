@@ -64,31 +64,22 @@ const remarkPlugins: U.PluggableList = [
   ],
 ]
 
-export function getAllDocs(locale: string = 'en') {
+export function getAllDocs() {
   const files = getAllFilesRecursively(docsPath)
   const docs = []
   
   for (const file of files) {
     const relativePath = file.slice(docsPath.length + 1).replace(/\\/g, '/')
     
-    // Skip if it's a localized file for a different locale
-    if (locale !== 'en') {
-      // For non-English locales, only include localized files or default files
-      if (relativePath.includes(`.${locale}.`) || (!relativePath.includes('.en.') && !relativePath.includes('.zh.'))) {
-        docs.push(relativePath)
-      }
-    } else {
-      // For English locale, include default files and English localized files
-      if (!relativePath.includes('.zh.') || relativePath.includes('.en.')) {
-        docs.push(relativePath)
-      }
+    // Only include Chinese localized files or files without locale suffix
+    if (relativePath.includes('.zh.') || (!relativePath.includes('.en.') && !relativePath.includes('.zh.'))) {
+      docs.push(relativePath)
     }
   }
   
   // Remove duplicates and sort
   const uniqueDocs = Array.from(new Set(docs))
   
-
   return uniqueDocs
 }
 
@@ -107,10 +98,10 @@ export function dateSortDesc(a: any, b: any) {
   return 0
 }
 
-function getSourceFromSlug(slug: string, locale: string = 'en') {
-  // Try to find localized version first
-  const localizedPath = path.join(docsPath, `${slug}.${locale}.mdx`)
-  const localizedMdPath = path.join(docsPath, `${slug}.${locale}.md`)
+function getSourceFromSlug(slug: string) {
+  // Try to find Chinese localized version first
+  const localizedPath = path.join(docsPath, `${slug}.zh.mdx`)
+  const localizedMdPath = path.join(docsPath, `${slug}.zh.md`)
   
   if (fs.existsSync(localizedPath)) {
     return fs.readFileSync(localizedPath, 'utf8')
@@ -120,7 +111,7 @@ function getSourceFromSlug(slug: string, locale: string = 'en') {
     return fs.readFileSync(localizedMdPath, 'utf8')
   }
   
-  // Fallback to default English version
+  // Fallback to default version without locale suffix
   const mdxPath = path.join(docsPath, `${slug}.mdx`)
   const mdPath = path.join(docsPath, `${slug}.md`)
   
@@ -164,16 +155,16 @@ Please check the URL or navigate back to the [documentation home](/docs/introduc
 `
 }
 
-export async function getDocBySlug(slug: string, locale: string = 'en') {
+export async function getDocBySlug(slug: string) {
   // Use the same logic as getSourceFromSlug
-  const source = getSourceFromSlug(slug, locale)
+  const source = getSourceFromSlug(slug)
   
   // Determine the file path for the source
   let filePath: string
   
-  // Try to find localized version first
-  const localizedMdxPath = path.join(docsPath, `${slug}.${locale}.mdx`)
-  const localizedMdPath = path.join(docsPath, `${slug}.${locale}.md`)
+  // Try to find Chinese localized version first
+  const localizedMdxPath = path.join(docsPath, `${slug}.zh.mdx`)
+  const localizedMdPath = path.join(docsPath, `${slug}.zh.md`)
   
   if (fs.existsSync(localizedMdxPath)) {
     filePath = localizedMdxPath
@@ -266,14 +257,14 @@ export async function getDocBySlug(slug: string, locale: string = 'en') {
     frontMatter: {
       slug: slug || null,
       fileName: path.basename(filePath),
-      locale,
+      locale: 'zh',
       ...frontmatter,
       date: frontmatter.date ? new Date(frontmatter.date).toISOString() : null,
     },
   }
 }
 
-export async function getAllFilesFrontMatter(folder: string, locale: string = 'en') {
+export async function getAllFilesFrontMatter(folder: string) {
   const prefixPaths = path.join(docsPath, folder)
 
   const files = getAllFilesRecursively(prefixPaths)
@@ -289,11 +280,11 @@ export async function getAllFilesFrontMatter(folder: string, locale: string = 'e
     }
     
     // Check if this is a localized file
-    const isLocalized = fileName.includes(`.${locale}.`)
+    const isLocalized = fileName.includes('.zh.')
     const isDefault = !fileName.includes('.en.') && !fileName.includes('.zh.')
     
-    // Only include files for current locale or default English files
-    if (isLocalized || (isDefault && locale === 'en')) {
+    // Only include Chinese localized files or default files
+    if (isLocalized || isDefault) {
       const source = fs.readFileSync(file, 'utf8')
       const { data: frontmatter } = matter(source)
       if (frontmatter.draft !== true) {
@@ -319,10 +310,10 @@ const getTitle = (path: string) => {
   return removeExtension(path.split('/').pop() || '')
 }
 
-function prepareDoc(doc: string, locale: string = 'en') {
+function prepareDoc(doc: string) {
   const slugs = getSlugs(doc)
   const href = `/docs/${slugs.map(slugify).join('/')}`
-  const source = getSourceFromSlug(doc, locale)
+  const source = getSourceFromSlug(doc)
   const { data: frontmatter } = matter(source)
   
   // Get the base title from frontmatter or fallback to filename
@@ -400,7 +391,7 @@ function prepareDoc(doc: string, locale: string = 'en') {
   
   // Get the localized title if available
   const baseSlug = slugs[slugs.length - 1]
-  const localizedTitles = titleMappings[locale as keyof typeof titleMappings] || titleMappings.en
+  const localizedTitles = titleMappings.zh
   const localizedTitle = localizedTitles[baseSlug as keyof typeof localizedTitles]
   
   if (localizedTitle) {
@@ -418,17 +409,17 @@ type PageNavigation = Record<string, Navigation[]>
 
 type NavigationTree = Record<string, Navigation[] | PageNavigation>
 
-export function getDocsMap(locale: string = 'en'): Record<string, Navigation> {
-  const docs = getAllDocs(locale)
+export function getDocsMap(): Record<string, Navigation> {
+  const docs = getAllDocs()
   return docs.reduce((acc, d) => {
-    const doc = prepareDoc(d, locale)
+          const doc = prepareDoc(d, 'zh')
 
     return { ...acc, [doc.slug]: doc as Navigation }
   }, {})
 }
 
-export function getDocsNav(locale: string = 'en'): NavigationTree {
-  const pages = getDocsMap(locale)
+export function getDocsNav(): NavigationTree {
+  const pages = getDocsMap('zh')
   
   // Define navigation titles based on locale
   const navTitles = {
@@ -456,7 +447,7 @@ export function getDocsNav(locale: string = 'en'): NavigationTree {
     }
   }
   
-  const titles = navTitles[locale as keyof typeof navTitles] || navTitles.en
+  const titles = navTitles.zh
   
   return {
     [titles.Introduction]: [pages['getting-started']],

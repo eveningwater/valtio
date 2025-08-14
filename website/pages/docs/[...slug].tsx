@@ -3,31 +3,25 @@ import { DocLayout } from '~/components/layouts'
 import MDXRenderer from '~/components/MDXRenderer'
 import { getSlugs, getAllDocs, getDocBySlug, getDocsNav } from '~/lib/mdx'
 
-export const getStaticPaths: GetStaticPaths = async ({ locales = ['en', 'zh'] }) => {
-  const allPaths = []
-  
-  for (const locale of locales) {
-    const docs = getAllDocs(locale)
-    const localePaths = docs.map((p) => ({
-      params: {
-        slug: getSlugs(p),
-      },
-      locale,
-    }))
-    allPaths.push(...localePaths)
-  }
+export const getStaticPaths: GetStaticPaths = async () => {
+  const docs = getAllDocs()
+  const paths = docs.map((p) => ({
+    params: {
+      slug: getSlugs(p),
+    },
+  }))
   
   return {
-    paths: allPaths,
+    paths,
     fallback: false,
   }
 }
 
-export const getStaticProps: GetStaticProps = async ({ params, locale = 'en' }) => {
+export const getStaticProps: GetStaticProps = async ({ params }) => {
   let slug = params?.slug!
   if (Array.isArray(slug)) slug = slug.join('/')
-  const doc = await getDocBySlug(slug, locale as string)
-  const nav = getDocsNav(locale as string)
+  const doc = await getDocBySlug(slug)
+  const nav = getDocsNav()
   return {
     props: {
       doc,
