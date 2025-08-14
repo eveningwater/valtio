@@ -412,14 +412,14 @@ type NavigationTree = Record<string, Navigation[] | PageNavigation>
 export function getDocsMap(): Record<string, Navigation> {
   const docs = getAllDocs()
   return docs.reduce((acc, d) => {
-          const doc = prepareDoc(d, 'zh')
+    const doc = prepareDoc(d)
 
     return { ...acc, [doc.slug]: doc as Navigation }
   }, {})
 }
 
 export function getDocsNav(): NavigationTree {
-  const pages = getDocsMap('zh')
+  const pages = getDocsMap()
   
   // Define navigation titles based on locale
   const navTitles = {
