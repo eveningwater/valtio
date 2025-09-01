@@ -97,7 +97,7 @@ export function NavItems() {
         <Link href="/docs/introduction/getting-started">
           <a className="hover:text-sky-500 dark:hover:text-sky-400">文档</a>
         </Link>
-        <Link href="https://valtio.dev/">
+        <Link href="https://valtio.dev/" className='ml-4'>
           <a className="hover:text-sky-500 dark:hover:text-sky-400">English</a>
         </Link>
       </li>
