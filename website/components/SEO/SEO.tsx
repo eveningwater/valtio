@@ -4,7 +4,7 @@ interface SeoProps {
   title?: string
 }
 
-const defaultTitle = 'Valtio, makes proxy-state simple for React and Vanilla'
+const defaultTitle = 'Valtio，让代理状态在 React 和 Vanilla 中变得简单'
 
 export default function SEO({ title }: SeoProps) {
   return (
