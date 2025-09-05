@@ -67,16 +67,19 @@ const remarkPlugins: U.PluggableList = [
 export function getAllDocs() {
   const files = getAllFilesRecursively(docsPath)
   const docs = []
-  
+
   for (const file of files) {
     const relativePath = file.slice(docsPath.length + 1).replace(/\\/g, '/')
-    
+
     // Only include Chinese documentation files
-    if (relativePath.includes('.zh.') || (!relativePath.includes('.en.') && !relativePath.includes('.zh.'))) {
+    if (
+      relativePath.includes('.zh.') ||
+      (!relativePath.includes('.en.') && !relativePath.includes('.zh.'))
+    ) {
       docs.push(relativePath)
     }
   }
-  
+
   return docs
 }
 
@@ -99,27 +102,27 @@ function getSourceFromSlug(slug: string) {
   // Try to find Chinese version first
   const chinesePath = path.join(docsPath, `${slug}.zh.mdx`)
   const chineseMdPath = path.join(docsPath, `${slug}.zh.md`)
-  
+
   if (fs.existsSync(chinesePath)) {
     return fs.readFileSync(chinesePath, 'utf8')
   }
-  
+
   if (fs.existsSync(chineseMdPath)) {
     return fs.readFileSync(chineseMdPath, 'utf8')
   }
-  
+
   // Fallback to default version
   const mdxPath = path.join(docsPath, `${slug}.mdx`)
   const mdPath = path.join(docsPath, `${slug}.md`)
-  
+
   if (fs.existsSync(mdxPath)) {
     return fs.readFileSync(mdxPath, 'utf8')
   }
-  
+
   if (fs.existsSync(mdPath)) {
     return fs.readFileSync(mdPath, 'utf8')
   }
-  
+
   // If still not found, try to find any file that matches the slug pattern
   const files = getAllFilesRecursively(docsPath)
   for (const file of files) {
@@ -129,7 +132,7 @@ function getSourceFromSlug(slug: string) {
       return fs.readFileSync(file, 'utf8')
     }
   }
-  
+
   // Last resort: return a default error document
   return `---
 title: '文档未找到'
@@ -147,14 +150,14 @@ description: '请求的文档未找到'
 export async function getDocBySlug(slug: string) {
   // Use the same logic as getSourceFromSlug
   const source = getSourceFromSlug(slug)
-  
+
   // Determine the file path for the source
   let filePath: string
-  
+
   // Try to find Chinese version first
   const chineseMdxPath = path.join(docsPath, `${slug}.zh.mdx`)
   const chineseMdPath = path.join(docsPath, `${slug}.zh.md`)
-  
+
   if (fs.existsSync(chineseMdxPath)) {
     filePath = chineseMdxPath
   } else if (fs.existsSync(chineseMdPath)) {
@@ -163,7 +166,7 @@ export async function getDocBySlug(slug: string) {
     // Fallback to default version
     const mdxPath = path.join(docsPath, `${slug}.mdx`)
     const mdPath = path.join(docsPath, `${slug}.md`)
-    
+
     if (fs.existsSync(mdxPath)) {
       filePath = mdxPath
     } else if (fs.existsSync(mdPath)) {
@@ -266,9 +269,12 @@ export async function getAllFilesFrontMatter(folder: string) {
     if (path.extname(fileName) !== '.md' && path.extname(fileName) !== '.mdx') {
       return
     }
-    
+
     // Only include Chinese documentation files
-    if (fileName.includes('.zh.') || (!fileName.includes('.en.') && !fileName.includes('.zh.'))) {
+    if (
+      fileName.includes('.zh.') ||
+      (!fileName.includes('.en.') && !fileName.includes('.zh.'))
+    ) {
       const source = fs.readFileSync(file, 'utf8')
       const { data: frontmatter } = matter(source)
       if (frontmatter.draft !== true) {
@@ -299,33 +305,34 @@ function prepareDoc(doc: string) {
   const href = `/docs/${slugs.map(slugify).join('/')}`
   const source = getSourceFromSlug(doc)
   const { data: frontmatter } = matter(source)
-  
+
   // Get the base title from frontmatter or fallback to filename
   let title = frontmatter.title ?? getTitle(doc)
-  
+
   // Chinese document titles
   const titleMappings = {
     'getting-started': '开始使用',
-    'async': '异步处理',
+    async: '异步处理',
     'component-state': '组件状态',
     'computed-properties': '计算属性',
     'migrating-to-v2': '迁移到 v2',
-    'proxy': 'proxy',
-    'useSnapshot': 'useSnapshot',
-    'ref': 'ref',
-    'subscribe': 'subscribe',
-    'snapshot': 'snapshot',
-    'subscribeKey': 'subscribeKey',
-    'watch': 'watch',
-    'devtools': 'devtools',
-    'derive': 'derive',
-    'proxyWithHistory': 'proxyWithHistory',
-    'proxySet': 'proxySet',
-    'proxyMap': 'proxyMap',
-    'getVersion': 'getVersion',
-    'internals': '内部实现',
+    proxy: 'proxy',
+    useSnapshot: 'useSnapshot',
+    ref: 'ref',
+    subscribe: 'subscribe',
+    snapshot: 'snapshot',
+    subscribeKey: 'subscribeKey',
+    watch: 'watch',
+    devtools: 'devtools',
+    derive: 'derive',
+    proxyWithHistory: 'proxyWithHistory',
+    proxySet: 'proxySet',
+    proxyMap: 'proxyMap',
+    getVersion: 'getVersion',
+    internals: '内部实现',
     'how-to-avoid-rerenders-manually': '如何手动避免重新渲染',
-    'how-to-easily-access-the-state-from-anywhere-in-the-application': '如何轻松地从应用程序的任何地方访问状态',
+    'how-to-easily-access-the-state-from-anywhere-in-the-application':
+      '如何轻松地从应用程序的任何地方访问状态',
     'how-to-organize-actions': '如何组织 actions',
     'how-to-persist-states': '如何持久化状态',
     'how-to-reset-state': '如何重置状态',
@@ -333,19 +340,19 @@ function prepareDoc(doc: string) {
     'how-to-use-with-context': '如何与 context 一起使用',
     'how-valtio-works': 'Valtio 工作原理',
     'some-gotchas': '一些陷阱',
-    'community': '社区',
-    'libraries': '库',
-    'learn': '学习',
+    community: '社区',
+    libraries: '库',
+    learn: '学习',
   }
-  
+
   // Get the Chinese title if available
   const baseSlug = slugs[slugs.length - 1]
   const chineseTitle = titleMappings[baseSlug as keyof typeof titleMappings]
-  
+
   if (chineseTitle) {
     title = chineseTitle
   }
-  
+
   return {
     title,
     href,
@@ -368,19 +375,19 @@ export function getDocsMap(): Record<string, Navigation> {
 
 export function getDocsNav(): NavigationTree {
   const pages = getDocsMap()
-  
+
   return {
-    '介绍': [pages['getting-started']],
-    '指南': [
+    介绍: [pages['getting-started']],
+    指南: [
       pages['async'],
       pages['component-state'],
       pages['computed-properties'],
       pages['migrating-to-v2'],
     ],
-    'API': {
-      '基础': [pages['proxy'], pages['useSnapshot']],
-      '高级': [pages['ref'], pages['subscribe'], pages['snapshot']],
-      '工具': [
+    API: {
+      基础: [pages['proxy'], pages['useSnapshot']],
+      高级: [pages['ref'], pages['subscribe'], pages['snapshot']],
+      工具: [
         pages['subscribeKey'],
         pages['watch'],
         pages['devtools'],
@@ -389,9 +396,9 @@ export function getDocsNav(): NavigationTree {
         pages['proxySet'],
         pages['proxyMap'],
       ],
-      '技巧': [pages['getVersion'], pages['internals']],
+      技巧: [pages['getVersion'], pages['internals']],
     },
-    '如何使用': [
+    如何使用: [
       pages['how-to-avoid-rerenders-manually'],
       pages['how-to-easily-access-the-state-from-anywhere-in-the-application'],
       pages['how-to-organize-actions'],
@@ -402,6 +409,6 @@ export function getDocsNav(): NavigationTree {
       pages['how-valtio-works'],
       pages['some-gotchas'],
     ],
-    '资源': [pages['community'], pages['libraries'], pages['learn']],
+    资源: [pages['community'], pages['libraries'], pages['learn']],
   }
 }

@@ -13,9 +13,7 @@ description: ''
 import { subscribeKey } from 'valtio/utils'
 
 const state = proxy({ count: 0, text: 'hello' })
-subscribeKey(state, 'count', (v) =>
-  console.log('state.count 已更改为', v),
-)
+subscribeKey(state, 'count', (v) => console.log('state.count 已更改为', v))
 ```
 
 ## Codesandbox 演示

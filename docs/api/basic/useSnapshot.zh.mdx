@@ -9,7 +9,7 @@ description: '创建一个捕获更改的本地快照。'
 
 创建一个捕获更改的本地 `snapshot`。
 
-通常，Valtio 的快照（通过 <a href="/docs/api/advanced/snapshot">`snapshot()`</a> 创建）会在代理或其任何子代理发生_任何_更改时重新创建。
+通常，Valtio 的快照（通过 <a href="/docs/api/advanced/snapshot">`snapshot()`</a> 创建）会在代理或其任何子代理发生*任何*更改时重新创建。
 
 但是 `useSnapshot` 在访问跟踪代理中包装 Valtio 快照。这是为了确保您的组件是渲染优化的，即它只会在它（或其子组件）特别访问的键发生变化时重新渲染，而不是在代理的每次更改时都重新渲染。
 
@@ -187,7 +187,7 @@ return <div>{profile.name}</div>
 <blockquote className="important">
 !! &nbsp; 使用调试值有两个免责声明
 
-1. 由于 `useSnapshot` 使用代理在 `useSnapshot` 返回_之后_记录访问的方式，`useDebugValue` 中列出的字段在技术上来自_前一次_渲染。
+1. 由于 `useSnapshot` 使用代理在 `useSnapshot` 返回*之后*记录访问的方式，`useDebugValue` 中列出的字段在技术上来自*前一次*渲染。
 2. 对象 getter 和类 getter 调用不包含在 `useDebugValue` 输出中，但不要担心，它们实际上在内部被正确跟踪，并在更改时正确触发重新渲染。
 
 </blockquote>
