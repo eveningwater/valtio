@@ -98,4 +98,146 @@ const user = proxy({
   name: 'John',
 })
 const greetings = proxy({
+  // 错误 - `this` 指向 `greetings`。
+  get greetingEn() {
+    return 'Hello ' + this.name
+  },
+})
 ```
+
+一个解决方法是将相关对象作为属性附加。
+
+```js
+const user = proxy({
+  name: 'John',
+})
+const greetings = proxy({
+  user, // 附加 `user` 代理对象
+  // 正确 - 可以通过 `this` 引用用户属性
+  get greetingEn() {
+    return 'Hello ' + this.user.name
+  },
+})
+```
+
+另一种方法是创建一个单独的代理并使用 `subscribe` 进行同步。
+
+```js
+const user = proxy({
+  name: 'John',
+})
+const greetings = proxy({
+  greetingEn: 'Hello ' + user.name,
+})
+subscribe(user, () => {
+  greetings.greetingEn = 'Hello ' + user.name
+})
+```
+
+或者使用 `watch`。
+
+```js
+const user = proxy({
+  name: 'John',
+})
+const greetings = proxy({})
+watch((get) => {
+  greetings.greetingEn = 'Hello ' + get(user).name
+})
+```
+
+## 对象 getter 和 setter
+
+也支持 setter：
+
+```js
+const state = proxy({
+  count: 1,
+  get doubled() {
+    return state.count * 2
+  },
+  set doubled(newValue) {
+    state.count = newValue / 2
+  },
+})
+
+// 状态上的 setter 调用按预期工作
+state.doubled = 4
+console.log(state.count) // 2
+
+// 快照上的 getter 调用按预期工作
+const snap = snapshot(state)
+console.log(snap.doubled) // 4
+
+// 快照上的 setter 调用按预期失败
+// 编译错误：无法分配给 'doubled'，因为它是只读属性。
+// 运行时错误：TypeError: 无法分配给对象 '#<Object>' 的只读属性 'doubled'
+snap.doubled = 2
+```
+
+与 getter 一样，`set doubled` 内的 setter 调用（即 `this.count = newValue / 2`）本身是针对 `state` 代理调用的，所以新的 `count` 值将被正确更新（并且订阅者/快照会收到新更改的通知）。
+
+如果您制作快照，所有属性都变为只读，所以 `snap.doubled = 2` 将是编译错误，并且也会在运行时失败，因为 `snapshot` 对象被冻结。
+
+## 类 getter 和 setter
+
+类 getter 和 setter 实际上像对象 getter 和 setter 一样工作：
+
+```js
+class Counter {
+  count = 1
+  get doubled() {
+    return this.count * 2
+  }
+  set doubled(newValue) {
+    this.count = newValue / 2
+  }
+}
+
+const state = proxy(new Counter())
+const snap = snapshot(state)
+
+// 更改状态按预期工作
+state.doubled = 4
+console.log(state.count) // 2
+// 快照值不会改变
+console.log(snap.doubled) // 2
+```
+
+与对象 getter 类似，`state` 代理上的类 getter 不会被缓存。
+
+但是，与对象 getter 不同，`snapshot` 对象上的类 getter 不会被缓存，并且每次访问 `snap.doubled` 时都会重新评估。如 `snapshot` 文档中提到的，这应该没问题，因为期望 getter 评估的成本与缓存它们的成本一样低。
+
+也与快照上的对象 setter 不同（调用时立即在运行时失败），快照上的类 setter 在技术上会开始评估，但它们内部所做的任何变化（即 `this.count = newValue / 2`）都会在运行时失败，因为 `this` 将是快照实例，快照被 `Object.freeze` 冻结。
+
+## 使用 `proxy-memoize` 进行状态使用跟踪
+
+如果您需要为 `state` 代理本身缓存 getter 结果，您可以使用 Valtio 的姊妹项目 [proxy-memoize](https://github.com/dai-shi/proxy-memoize)。
+
+`proxy-memoize` 使用与 Valtio 的 `snapshot` 函数类似的基于使用的跟踪方法，所以它只会在 getter 逻辑访问的字段实际发生变化时重新计算 getter。
+
+```js
+import { memoize } from 'proxy-memoize'
+
+const memoizedDoubled = memoize((snap) => snap.count * 2)
+
+const state = proxy({
+  count: 1,
+  text: 'hello',
+  get doubled() {
+    return memoizedDoubled(snapshot(state))
+  },
+})
+```
+
+使用此实现，当 `text` 属性发生变化（但 `count` 没有）时，记忆化函数不会重新执行。
+
+## 关于使用 `this` 的注意事项
+
+您可以在 getter 和 setter 内部使用 `this`，但您应该熟悉 JS `this` 的工作原理：基本上 `this` 是您调用它的对象。
+
+所以如果您调用 `state.doubled`，那么 `this` 将是 `state` 代理。
+
+如果您调用 `snap.doubled`，那么 `this` 将是快照对象（除了对象 getter 和 setter，其中当前值在快照过程中被复制，所以对象 getter 和 setter 永远不会在快照上调用）。
+
+尽管有这个细微差别，您应该能够按预期使用 `this`，事情会"正常工作"。
